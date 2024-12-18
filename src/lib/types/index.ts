@@ -84,19 +84,11 @@ export type AgentsType =
   | "fileProcessingAssistant"
   | "fileProgrammer"
   | "writer"
-  | "operationsSupervisorAgent"
-  | "customerServiceSupervisorAgent"
-  | "inventoryOptimizationAgent"
-  | "orderFulfillmentAgent"
-  | "customerServiceAgent"
-  | "returnsManagementAgent"
-  | "billingAndFinancialAnalysisAgent"
-  | "demandForecastingAgent"
-  | "supplierPerformanceAgent"
-  | "routeOptimizationAgent"
-  | "procurementAgent"
-  | "supplierAgent"
-  | "carrierPerformanceAgent";
+  | "customerFacingAgent"
+  | "orderAgent"
+  | "inventoryAgent"
+  | "productAgent"
+  | "inBoundShipmentAgent";
 
 export type ToolTypedName =
   //orderManager
@@ -219,5 +211,5 @@ export type ObjectTypedName =
 export interface ToolProps {
   uiStream: ReturnType<typeof createStreamableUI>;
   fullResponse: string;
-  integration: any;
+  company_url?: string;
 }

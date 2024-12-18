@@ -1,18 +1,17 @@
-import { CoreMessage, generateObject, generateText, tool } from "ai";
+import { CoreMessage, generateText } from "ai";
 import { createStreamableUI } from "ai/rsc";
-import { z } from "zod";
 
 import { getModel } from "@/lib/utils";
 import { langfuseNode } from "@/lib/config/langfuse";
 import Analyzer from "@/components/analyzer";
 import { MessageRole } from "../types/messages-role.enum";
 // import { getDesiredManager } from "./managers";
-import { managerAssistant } from "./managers/3pl-managers";
+import { getDesiredManagerTools } from "./managers";
 
 export async function InquiryAssistant(
   messages: CoreMessage[], // updated Messages
   uiStream: ReturnType<typeof createStreamableUI>, // updated Messages
-  integration: any,
+  company_url: string,
   orgType?: string,
   traceId?: string
 ) {
@@ -44,7 +43,7 @@ export async function InquiryAssistant(
   const prompt = await langfuseNode.getPrompt("inquiryAgent");
   const compiledPrompt = prompt.compile({});
 
-  const inquiryGeneration = inquirySpan.generation({
+  const inquiryGen = langfuseNode.generation({
     name: "inquiry-generation",
     input: [
       { role: MessageRole.SYSTEM, content: compiledPrompt },
@@ -54,6 +53,8 @@ export async function InquiryAssistant(
       },
     ],
     model: getModel().modelId,
+    traceId: traceId,
+    parentObservationId: inquirySpan.id,
     prompt: prompt,
   });
 
@@ -64,228 +65,12 @@ export async function InquiryAssistant(
       messages,
       toolChoice: "required",
       temperature: 0.5,
-      tools: {
-        inventoryOptimizationAgent: tool({
-          description:
-            "This tool is used to get the inventory optimization agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "inventoryOptimizationAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        orderFulfillmentAgent: tool({
-          description:
-            "This tool is used to get the order fulfillment agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "orderFulfillmentAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        demandForecastingAgent: tool({
-          description:
-            "This tool is used to get the demand forecasting agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "demandForecastingAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        // supplierPerformanceAgent: tool({
-        //   description:
-        //     "This tool is used to get the supplier performance agent answer",
-        //   parameters: z.object({
-        //     instructions: z.string(),
-        //   }),
-        //   execute: async ({ instructions }) => {
-        //     return await managerAssistant(
-        //       "supplierPerformanceAgent",
-        //       uiStream,
-        //       instructions,
-        //       integration,
-        //       "traceId",
-        //       "1"
-        //     );
-        //   },
-        // }),
-        routeOptimizationAgent: tool({
-          description:
-            "This tool is used to get the route optimization agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "routeOptimizationAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        procurementAgent: tool({
-          description: "This tool is used to get the procurement agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "procurementAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        carrierPerformanceAgent: tool({
-          description:
-            "This tool is used to get the carrier performance agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "carrierPerformanceAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        returnsManagementAgent: tool({
-          description:
-            "This tool is used to get the returns management agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "returnsManagementAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        billingAndFinancialAnalysisAgent: tool({
-          description:
-            "This tool is used to get the billing and financial analysis agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "billingAndFinancialAnalysisAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        operationsSupervisorAgent: tool({
-          description:
-            "This tool is used to get the operations supervisor agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "operationsSupervisorAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        customerServiceSupervisorAgent: tool({
-          description:
-            "This tool is used to get the customer service supervisor agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "customerServiceSupervisorAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        customerServiceAgent: tool({
-          description:
-            "This tool is used to get the customer service agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "customerServiceAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-        supplierAgent: tool({
-          description:
-            "This tool is used to get the supplier agent answer",
-          parameters: z.object({
-            instructions: z.string(),
-          }),
-          execute: async ({ instructions }) => {
-            return await managerAssistant(
-              "supplierAgent",
-              uiStream,
-              instructions,
-              integration,
-              "traceId",
-              "1"
-            );
-          },
-        }),
-      },
+      tools: getDesiredManagerTools(
+        uiStream,
+        company_url,
+        traceId,
+        inquirySpan.id
+      ),
     });
 
     if (result?.toolResults?.length) {
@@ -295,10 +80,20 @@ export async function InquiryAssistant(
 
       console.log("Tool Contents =======>>>", { toolContents });
       toolResponses = toolContents;
+      // Finalize Span with Success Data
+      inquiryGen.end({
+        level: "DEFAULT",
+        output: { toolResponses },
+      });
       return { isError: false, error: "", toolResponses: toolResponses };
     }
   } catch (error) {
     console.log(error);
+    // Finalize Span with Success Data
+    inquiryGen.end({
+      level: "ERROR",
+      output: { error },
+    });
     return { isError: true, error: error, toolResponses: [] };
   }
 

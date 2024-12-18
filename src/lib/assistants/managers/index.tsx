@@ -1,7 +1,8 @@
 import { createStreamableUI } from "ai/rsc";
-import { CoreMessage, ToolCallPart, ToolResultPart } from "ai";
+import { CoreMessage, tool, ToolCallPart, ToolResultPart } from "ai";
 
 import { managerAssistant } from "./3pl-managers";
+import { z } from "zod";
 
 interface AssistantTypes {
   uiStream: ReturnType<typeof createStreamableUI>;
@@ -35,58 +36,97 @@ export interface ManagerKindResponse {
   managerResponse?: CoreMessage[];
 }
 
-// export const getDesiredManager = async (
-//   businessType: string,
-//   manager: string,
-//   { uiStream, messages, integration }: AssistantTypes,
-//   traceId: string,
-//   spanId: string
-// ): Promise<ManagerKindResponse> => {
-//   switch (businessType) {
-//     //3PL Assistants Managers
-//     case "3pl":
-//       switch (manager) {
-//         //3PL Assistants Managers
-//         case "operationsSupervisorAgent":
-//         case "customerServiceSupervisorAgent":
-//         case "inventoryOptimizationAgent":
-//         case "orderFulfillmentAgent":
-//         case "customerServiceAgent":
-//         case "returnsManagementAgent":
-//         case "billingAndFinancialAnalysisAgent":
-//         case "demandForecastingAgent":
-//         case "supplierPerformanceAgent":
-//         case "routeOptimizationAgent":
-//         case "procurementAgent":
-//         case "carrierPerformanceAgent":
-//           return await managerAssistant(
-//             manager,
-//             uiStream,
-//             messages,
-//             integration,
-//             traceId,
-//             spanId
-//           );
-
-//         //Any Other Agents Managers
-//         default:
-//           return {
-//             error: `\nThere is no Manager Found with for the Related Query`,
-//             isError: true,
-//             toolResponses: [],
-//             toolCalls: [],
-//             managerResponse: [],
-//           };
-//       }
-
-//     default:
-//       return await managerAssistant(
-//         "customerServiceAgent",
-//         uiStream,
-//         messages,
-//         integration,
-//         traceId,
-//         spanId
-//       );
-//   }
-// };
+export const getDesiredManagerTools = (
+  uiStream: ReturnType<typeof createStreamableUI>,
+  company_url: string,
+  traceId?: string,
+  spanId?: string
+) => {
+  const tools = {
+    customerFacingAgent: tool({
+      description: "Provides insights to brands served by the 3PL.",
+      parameters: z.object({
+        instructions: z.string(),
+      }),
+      execute: async ({ instructions }) => {
+        return await managerAssistant(
+          "customerFacingAgent",
+          uiStream,
+          instructions,
+          company_url,
+          "traceId",
+          "1"
+        );
+      },
+    }),
+    orderAgent: tool({
+      description:
+        "Analyzes order delays, optimizes carrier performance, and provides order fulfillment insights.",
+      parameters: z.object({
+        instructions: z.string(),
+      }),
+      execute: async ({ instructions }) => {
+        return await managerAssistant(
+          "orderAgent",
+          uiStream,
+          instructions,
+          company_url,
+          "traceId",
+          "1"
+        );
+      },
+    }),
+    inventoryAgent: tool({
+      description:
+        "Forecasts stock replenishment needs and alerts on low inventory levels.",
+      parameters: z.object({
+        instructions: z.string(),
+      }),
+      execute: async ({ instructions }) => {
+        return await managerAssistant(
+          "inventoryAgent",
+          uiStream,
+          instructions,
+          company_url,
+          "traceId",
+          "1"
+        );
+      },
+    }),
+    productAgent: tool({
+      description:
+        "Detects underperforming SKUs, optimizes pricing, and suggests bundling opportunities.",
+      parameters: z.object({
+        instructions: z.string(),
+      }),
+      execute: async ({ instructions }) => {
+        return await managerAssistant(
+          "productAgent",
+          uiStream,
+          instructions,
+          company_url,
+          "traceId",
+          "1"
+        );
+      },
+    }),
+    inBoundShipmentAgent: tool({
+      description:
+        "Provides insights into warehouse performance, inbound shipments, and exception management.",
+      parameters: z.object({
+        instructions: z.string(),
+      }),
+      execute: async ({ instructions }) => {
+        return await managerAssistant(
+          "inBoundShipmentAgent",
+          uiStream,
+          instructions,
+          company_url,
+          "traceId",
+          "1"
+        );
+      },
+    }),
+  };
+  return tools;
+};

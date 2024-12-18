@@ -1,58 +1,58 @@
-"use-sever";
-
 import axios from "axios";
 import { ToolProps } from "@/lib/types";
 import { tool } from "ai";
-
 import { createStreamableValue } from "ai/rsc";
 import z from "zod";
 import ENDPOINTS from "../constants/path";
 
-export const labor_shift_recommendations = ({
+export const getDelayedOrders = ({
   uiStream,
   fullResponse,
-  integration = "",
+  company_url,
 }: ToolProps) => {
   return tool({
-    description: `This tool provides labor shift recommendations based on aggregated data from multiple sources on order volume and inbound shipment counts across different warehouses. It generates labor demand classifications for efficient staffing based on customizable filters such as warehouse ID, and date range. Ideal for analyzing labor demand levels and optimizing staffing across warehouse locations.`,
+    description: `Analyzes root causes of delayed orders.`,
     parameters: z.object({
-      end_date: z
+      max_order_date: z
         .string()
         .optional()
         .describe(
-          "Filters data up to the specified end date within a date range. Format: YYYY-MM-DD."
+          "Maximum order date for filtering results. Must follow this Format: YYYY-MM-DD."
         ),
-      start_date: z
+      min_order_date: z
         .string()
         .optional()
         .describe(
-          "Filters data from the specified start date within a date range. Format: YYYY-MM-DD."
+          "Minimum order date for filtering results.  Must follow this Format: YYYY-MM-DD."
         ),
-      warehouse_id: z
-        .string()
-        .optional()
-        .describe("Filters data by the unique identifier of the warehouse."),
-      brand_name: z
+      order_date: z
         .string()
         .optional()
         .describe(
-          "Specifies the field according to brand name and filter out the data according to brand"
+          "Specific order date to filter results. Must follow this Format: YYYY-MM-DD."
         ),
-      brand_domain: z
+      order_number: z
         .string()
         .optional()
-        .describe(
-          "Specifies the field according to brand domain (e.g. brand.com, brand.net) and filter out the data according to brand"
-        ),
+        .describe("Filter by specific order number"),
+      warehouse: z
+        .string()
+        .optional()
+        .describe("Filter results by the warehouse name"),
+      warehouse_sku: z
+        .string()
+        .optional()
+        .describe("Filter results by the warehouse SKU"),
     }),
+
     execute: async (query: any) => {
       let hasError = false;
       const streamResults = createStreamableValue<string>();
 
       let searchResult;
 
-      if (!integration?.company_url) {
-        fullResponse = `${"user Company Not Found"} for "${query}.`;
+      if (company_url) {
+        fullResponse = `${"User Company Not Found"} for "${query}".`;
         uiStream.update(null);
         streamResults.done();
         return searchResult;
@@ -62,20 +62,14 @@ export const labor_shift_recommendations = ({
         const { format = "json", q = "", ...rest } = query;
 
         const response = await axios.get(
-          `${ENDPOINTS.LABOR_SHIFT_RECOMMENDATIONS}.${format}`,
+          `${ENDPOINTS.DELAYED_ORDERS}.${format}`,
           {
             headers: {
               Authorization: process.env.TINYBIRD_3PL_TOKEN,
             },
             params: {
               q,
-              // company_url: rest.company_url ? rest.company_url : company_url,
-              company_url: integration?.company_url
-                ? integration?.company_url
-                : "",
-              ...(integration?.brandId
-                ? { brand_id: integration.brandId }
-                : {}),
+              company_url: company_url,
               ...rest,
             },
           }

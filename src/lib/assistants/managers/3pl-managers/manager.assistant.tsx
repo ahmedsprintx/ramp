@@ -16,7 +16,7 @@ export async function managerAssistant(
   manager: AgentsType,
   uiStream: ReturnType<typeof createStreamableUI>,
   instructions: string,
-  integration: string,
+  company_url: string,
   traceId: string,
   spanId: string
 ): Promise<ManagerKindResponse> {
@@ -60,19 +60,11 @@ export async function managerAssistant(
   try {
     if (
       [
-        "operationsSupervisorAgent",
-        "customerServiceSupervisorAgent",
-        "inventoryOptimizationAgent",
-        "orderFulfillmentAgent",
-        "customerServiceAgent",
-        "returnsManagementAgent",
-        "billingAndFinancialAnalysisAgent",
-        "demandForecastingAgent",
-        // "supplierPerformanceAgent",
-        "routeOptimizationAgent",
-        "procurementAgent",
-        "carrierPerformanceAgent",
-        "supplierAgent",
+        "customerFacingAgent",
+        "orderAgent",
+        "inventoryAgent",
+        "productAgent",
+        "inBoundShipmentAgent",
       ].includes(manager)
     ) {
       roundTrips = 2;
@@ -88,7 +80,7 @@ export async function managerAssistant(
       tools: getTools(manager, {
         uiStream,
         fullResponse,
-        integration: integration,
+        company_url: company_url,
       }),
       toolChoice: "required",
       frequencyPenalty: -1,

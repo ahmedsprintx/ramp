@@ -34,7 +34,7 @@ const PromptBoxes: React.FC = () => {
   const [, setMessages] = useUIState<typeof AI>();
   const { onSubmitMessage } = useActions();
   const { user, accessToken } = useAuthInfo();
-  const { currentOrgType, currentIntegration } = useChatContext();
+  const { currentOrgType, company_url } = useChatContext();
 
   async function handleQuerySubmit(query: string, formData?: FormData) {
     const userMessageId = generateId();
@@ -57,7 +57,7 @@ const PromptBoxes: React.FC = () => {
       user,
       accessToken,
       data,
-      currentIntegration || {},
+      company_url || "",
       currentOrgType || "3pl"
     );
     setMessages((currentMessages) => [...currentMessages, responseMessage]);

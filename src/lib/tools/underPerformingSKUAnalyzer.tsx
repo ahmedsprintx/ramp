@@ -1,48 +1,45 @@
-"use-sever";
-
 import axios from "axios";
 import { ToolProps } from "@/lib/types";
 import { tool } from "ai";
-
 import { createStreamableValue } from "ai/rsc";
 import z from "zod";
 import ENDPOINTS from "../constants/path";
 
-export const inventory_health_check = ({
+export const getUnderPerformingSKUAnalyzer = ({
   uiStream,
   fullResponse,
-  integration,
+  company_url,
 }: ToolProps) => {
-  // const companyUrlArray = company_url.split(',');
   return tool({
-    description: `Performs an inventory health check by evaluating product stock levels across specified products, SKUs, and warehouses. Returns skus with stock shortages where on-hand quantity is less than the combined committed and unfulfillable quantities, returning relevant inventory details organized by product and warehouse.`,
+    description: ` Highlights SKUs with low sales or excessive inventory.`,
     parameters: z.object({
-      product_id: z
-        .string()
+      limit: z
+        .number()
+        .int()
         .optional()
-        .describe("Filters data by the unique identifier of the product."),
-      product_sku: z
-        .string()
-        .optional()
-        .describe(
-          "Filters data by the SKU (Stock Keeping Unit) of the product."
-        ),
-      warehouse_id: z
-        .string()
-        .optional()
-        .describe("Filters data by the unique identifier of the warehouse."),
-      brand_name: z
+        .describe("Limit the number of results returned"),
+      max_order_date: z
         .string()
         .optional()
         .describe(
-          "Specifies the field according to brand name and filter out the data according to brand"
+          "Maximum order date for filtering results. Must follow this Format: YYYY-MM-DD."
         ),
-      brand_domain: z
+      min_order_date: z
         .string()
         .optional()
         .describe(
-          "Specifies the field according to brand domain (e.g. brand.com, brand.net) and filter out the data according to brand"
+          "Minimum order date for filtering results. Must follow this Format: YYYY-MM-DD."
         ),
+      order_date: z
+        .string()
+        .optional()
+        .describe(
+          "Specific order date to filter results. Must follow this Format: YYYY-MM-DD."
+        ),
+      warehouse_sku: z
+        .string()
+        .optional()
+        .describe("Filter results by the warehouse SKU"),
     }),
     execute: async (query: any) => {
       let hasError = false;
@@ -50,8 +47,8 @@ export const inventory_health_check = ({
 
       let searchResult;
 
-      if (!integration?.company_url) {
-        fullResponse = `${"user Company Not Found"} for "${query}.`;
+      if (company_url) {
+        fullResponse = `${"User Company Not Found"} for "${query}".`;
         uiStream.update(null);
         streamResults.done();
         return searchResult;
@@ -61,20 +58,14 @@ export const inventory_health_check = ({
         const { format = "json", q = "", ...rest } = query;
 
         const response = await axios.get(
-          `${ENDPOINTS.INVENTORY_HEALTH_CHECK}.${format}`,
+          `${ENDPOINTS.MOST_ORDERED_SKU}.${format}`,
           {
             headers: {
               Authorization: process.env.TINYBIRD_3PL_TOKEN,
             },
             params: {
               q,
-              // company_url: rest.company_url ? rest.company_url : company_url,
-              company_url: integration?.company_url
-                ? integration?.company_url
-                : "",
-              ...(integration?.brandId
-                ? { brand_id: integration.brandId }
-                : {}),
+              company_url: company_url,
               ...rest,
             },
           }

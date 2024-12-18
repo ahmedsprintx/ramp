@@ -27,11 +27,6 @@ import { langfuseNode } from "@/lib/config/langfuse";
 import { User } from "@propelauth/nextjs/client";
 import { createLocalFileAndUploadToS3 } from "../utils/s3/upload-file";
 import { MessageRole } from "../types/messages-role.enum";
-import {
-  extractFileLinks,
-  extractGraphsContent,
-  removeSpecificStructure,
-} from "../utils";
 
 function limitToolData(messages: any) {
   return messages?.map((message: any) => {
@@ -59,14 +54,12 @@ function limitToolData(messages: any) {
   });
 }
 
-type IntegrationType = { company_url: string; brandId?: string };
-
 async function onSubmitMessage(
   userMessageId: string,
   user: User,
   accessToken: string,
   formData?: FormData,
-  integration?: IntegrationType,
+  company_url?: string,
   orgType?: string,
   retryMessages?: AIMessage[],
   isEdited?: boolean
@@ -144,11 +137,18 @@ async function onSubmitMessage(
     let errorOccurred = false;
     let errorDetails;
 
+    const inquirySpan = langfuseNode.span({
+      name: "inquiry-agent-function",
+      startTime: new Date(),
+      input: { chatHistory: { messages }, orgType: { orgType } },
+      traceId: traceId,
+    });
+
     //Inquiry Assistant
     const { isError, error, toolResponses } = await InquiryAssistant(
       messages,
       uiStream,
-      integration,
+      company_url || "",
       orgType,
       traceId
     );
@@ -167,7 +167,7 @@ async function onSubmitMessage(
           toolOutputs,
         },
         metadata: {
-          integration,
+          company_url,
         },
       });
 
