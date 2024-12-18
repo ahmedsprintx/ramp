@@ -1,0 +1,12 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="icon / tabler-icons / upload" clip-path="url(#clip0_135_811)">
+<path id="Vector" d="M2.66663 11.333V12.6663C2.66663 13.02 2.8071 13.3591 3.05715 13.6092C3.3072 13.8592 3.64634 13.9997 3.99996 13.9997H12C12.3536 13.9997 12.6927 13.8592 12.9428 13.6092C13.1928 13.3591 13.3333 13.02 13.3333 12.6663V11.333" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_2" d="M4.66663 6.00033L7.99996 2.66699L11.3333 6.00033" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M8 2.66699V10.667" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<clipPath id="clip0_135_811">
+<rect width="16" height="16" fill="white"/>
+</clipPath>
+</defs>
+</svg>
